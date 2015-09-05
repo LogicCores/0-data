@@ -1,0 +1,8 @@
+{
+  "name": "0-data-for-nedb",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "nedb": "^1.1.3"
+  }
+}
