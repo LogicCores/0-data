@@ -7,11 +7,11 @@ exports.forLib = function (LIB) {
             var Entity = function (instanceConfig) {
                 var self = this;
                 
-                var config = LIB._.merge(defaultConfig, instanceConfig)
+                var config = {};
+                LIB._.merge(config, defaultConfig);
+                LIB._.merge(config, instanceConfig);
 
-
-console.log("INIT NEDB ENTITY!", config);
-
+//console.log("INIT NEDB ENTITY!", config);
 
             }
             Entity.prototype.config = defaultConfig;
