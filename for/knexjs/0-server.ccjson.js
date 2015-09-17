@@ -19,7 +19,7 @@ exports.forLib = function (LIB) {
                     LIB._.merge(config, aspectConfig);
                     config = ccjson.attachDetachedFunctions(config);
 
-console.log("config", config);
+//console.log("config", config);
 
                 	// @see http://knexjs.org/#Installation-node
                 	var knex = KNEX(config.knex);
@@ -34,7 +34,7 @@ console.log("config", config);
                     			var table = ((tableName) ? knex(tableName) : knex);
                     			return query(table).then(function (resp) {
                     
-console.log("RESPONSE:", resp);
+//console.log("RESPONSE:", resp);
                     
                     				return resp;
                     			}).catch(function (err) {
@@ -51,7 +51,7 @@ console.log("RESPONSE:", resp);
                         			var table = ((tableName) ? knex(tableName) : knex);
                         			return query(table).then(function (resp) {
                         
-console.log("RESPONSE:", resp);
+//console.log("RESPONSE:", resp);
                         
                         				return resp;
                         			});

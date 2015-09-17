@@ -1,0 +1,7 @@
+{
+    "@": {
+        "$": [
+            "../../../../lib/ccjson.record.mapper/0-server.impl.ccjson"
+        ]
+    }
+}
