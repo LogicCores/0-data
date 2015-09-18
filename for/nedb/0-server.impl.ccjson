@@ -1,5 +1,7 @@
 {
     "$": "./0-server.ccjson.js",
-    "filename": null,
-    "autoload": true
+    "nedb": {
+        "filename": null,
+        "autoload": true
+    }
 }
