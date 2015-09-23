@@ -1,0 +1,8 @@
+{
+  "name": "0-data-for-bookshelf",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "bookshelf": "^0.8.2"
+  }
+}

@@ -11,6 +11,10 @@ exports.forLib = function (LIB) {
             var Entity = function (instanceConfig) {
                 var self = this;
 
+                var config = {};
+                LIB._.merge(config, defaultConfig);
+                LIB._.merge(config, instanceConfig);
+
                 self.AspectInstance = function (aspectConfig) {
 
                     var config = {};
@@ -19,13 +23,20 @@ exports.forLib = function (LIB) {
                     LIB._.merge(config, aspectConfig);
                     config = ccjson.attachDetachedFunctions(config);
 
-//console.log("config", config);
+                    var context = {};
 
-                	// @see http://knexjs.org/#Installation-node
-                	var knex = KNEX(config.knex);
-
-                    var context = {
-                        adapter: {
+                    // TODO: See why we get instance requests without sufficnet config set.
+                    //       Some calls are ok, but maybe too many? This should probably move up
+                    //       one layer to the entity instance.
+                    if (
+                        config.knex &&
+                        config.knex.connection &&
+                        config.knex.connection.host
+                    ) {
+                    	// @see http://knexjs.org/#Installation-node
+                    	var knex = KNEX(config.knex);
+    
+                        context.adapter = {
                             knex: function (tableName, query) {
                         		if (typeof query === "undefined" && typeof tableName === "function") {
                         			query = tableName;
@@ -60,8 +71,8 @@ exports.forLib = function (LIB) {
                         			throw err;
                         		});
                         	}
-                        }
-                    };
+                        };
+                    }
 
                     return LIB.Promise.resolve({
                         app: function () {
@@ -78,6 +89,15 @@ exports.forLib = function (LIB) {
                                             req.context[config.request.contextAlias] = context;
                                         }
                                         return next();
+                                    }
+                                )
+                            );
+                        },
+                        connection: function () {
+                            return LIB.Promise.resolve(
+                                ccjson.makeDetachedFunction(
+                                    function () {
+                                        return knex;
                                     }
                                 )
                             );
