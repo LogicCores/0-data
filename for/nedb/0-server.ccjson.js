@@ -5,6 +5,18 @@ exports.forLib = function (LIB) {
     const CONTEXTS = require("../../../../lib/logic.cores/0-server.boot").boot(LIB);
 
     const NEDB = require("nedb");
+    
+    
+    var instances = {};
+    // We ensure we only have one DB connection if same file
+    // is opened multiple times for different stacks.
+    function getNEDBInstance (config) {
+        if (instances[config.filename]) {
+            return instances[config.filename];
+        }
+        return (instances[config.filename] = new NEDB(config));
+    }
+    
 
     return LIB.Promise.resolve({
         forConfig: function (defaultConfig) {
@@ -77,8 +89,8 @@ exports.forLib = function (LIB) {
                         return contexts.adapters.data.mapper.loadCollectionModelsForPath(config.collectionsPath).then(function (models) {
                             return LIB.Promise.all(Object.keys(models).map(function (name) {
                                 var collectionModelInstance = models[name];
-                                
-                                tables[name] = new NEDB(LIB._.assign(LIB._.cloneDeep(config.nedb), {
+
+                                tables[name] = getNEDBInstance(LIB._.assign(LIB._.cloneDeep(config.nedb), {
                                     filename: config.nedb.filename + "." + name
                                 }));
                             }));
