@@ -66,17 +66,13 @@ exports.forLib = function (LIB) {
                         }
                     }
                 };
-                
+
                 context.setAdapterAPI(api);
 
 
                 function loadTableStores () {
-                    if (!config.collectionsPath) {
-                        return LIB.Promise.resolve();
-                    }
-                    return context.adapters["data.mapper"].loadCollectionModelsForPath(config.collectionsPath).then(function (models) {
+                    return config.collections().then(function (models) {
                         return LIB.Promise.all(Object.keys(models).map(function (name) {
-
                             tables[name] = getNEDBInstance(LIB._.assign(LIB._.cloneDeep(config.nedb), {
                                 filename: config.nedb.filename + "." + name
                             }));
@@ -84,19 +80,14 @@ exports.forLib = function (LIB) {
                     });
                 }
 
-
                 function seedCollections () {
-                    if (!config.collectionsPath) {
-                        return LIB.Promise.resolve();
-                    }
-                    return context.adapters["data.mapper"].loadCollectionSeedsForPath(config.collectionsPath).then(function (seeds) {
+                    return config.seeds().then(function (seeds) {
+
                         return LIB.Promise.all(Object.keys(seeds).map(function (name) {
-                            var collectionSeedInstance = seeds[name];
-                            
                             var db = tables[name];
-                            if (!db) {
-                                throw new Error("Table with name '" + name + "' needed to load seed not found!");
-                            }
+                            if (!db) return;
+
+                            var collectionSeedInstance = seeds[name];
 
                             function replaceRecords () {
                                 var records = collectionSeedInstance.records["@replace"];
@@ -136,6 +127,9 @@ exports.forLib = function (LIB) {
                     return seedCollections();
                 }).catch(function (err) {
                     console.error("ERROR while starting NEDB:", err.stack);
+                    throw err;
+                }).then(function () {
+                    return self;
                 });
             }
             Entity.prototype.config = defaultConfig;

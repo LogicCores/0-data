@@ -18,6 +18,8 @@ exports.forLib = function (LIB) {
 
 //console.log("config", config);
 
+                // @see http://blog.ragingflame.co.za/2014/12/16/building-a-simple-api-with-express-and-bookshelfjs
+
                 var knex = config.knex();
 
                 var context = config.context();
@@ -52,6 +54,16 @@ exports.forLib = function (LIB) {
                             ) {
                               addRecord(api.models[ownCollection]["@fields"][name].linksToOne, record[name]);
                               record[name] = record[name].id;
+                            } else
+                            if (
+                                record[name] &&
+                                Array.isArray(record[name]) &&
+                                api.models[name]
+                            ) {
+                                record[name] = record[name].map(function (record) {
+                                    addRecord(name, record);
+                                    return record.id;
+                                });
                             }
                           }
                           addRecord(ownCollection, record);
@@ -70,39 +82,54 @@ exports.forLib = function (LIB) {
                 
 
                 if (
-                    !config.collectionsPath ||
                     !api.adapter ||
                     !api.adapter.bookshelf
                 ) {
                     return self;
                 }
 
-                return context.getAdapterAPI("data.knexjs.mapper").then(function (mapperApi) {
-                    var models = mapperApi.models;
+                return config.collections().then(function (models) {
+                    
+                    var foreignFields = {};
 
                     return LIB.Promise.all(Object.keys(models).map(function (modelName) {
-
-                        var foreignFields = {};
                         Object.keys(models[modelName].Record["@fields"]).forEach(function (fieldName) {
                             var field = models[modelName].Record["@fields"][fieldName];
-
                             if (field.linksToOne) {
-                                foreignFields[fieldName] = function () {
+                                if (!foreignFields[modelName]) {
+                                    foreignFields[modelName] = {};
+                                }
+                                foreignFields[modelName][field.linksToOne] = function () {
                                     return this.belongsTo(
                                         api.models[field.linksToOne],
                                         fieldName
                                     );
                                 }
+                                if (!foreignFields[field.linksToOne]) {
+                                    foreignFields[field.linksToOne] = {};
+                                }
+//console.log("TABLE ", field.linksToOne, "HAS MANY OF", modelName, "based on FIELD", fieldName, 'in relation', modelName, 'for collection', field.linksToOne);                          
+                                foreignFields[field.linksToOne][modelName] = function () {
+                                    return this.hasMany(
+                                        api.models[modelName],
+                                        fieldName
+                                    );
+                                }
                             }
                         });
+                    })).then(function () {
+                        Object.keys(foreignFields).forEach(function (modelName) {
 
-                        api.models[modelName] = api.adapter.bookshelf.Model.extend(
-                            LIB._.assign(foreignFields, {
-                                tableName: modelName
-                            })
-                        );
-                        api.models[modelName]["@fields"] = models[modelName].Record["@fields"]
-                    }));
+                            // Create bookshelf models
+                            api.models[modelName] = api.adapter.bookshelf.Model.extend(
+                                LIB._.assign(foreignFields[modelName], {
+                                    tableName: modelName
+                                })
+                            );
+//console.log("model name", modelName);                            
+                            api.models[modelName]["@fields"] = models[modelName].Record["@fields"];
+                        });
+                    });
 
                 }).then(function () {
                     return self;
