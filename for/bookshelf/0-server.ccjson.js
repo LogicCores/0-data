@@ -2,7 +2,6 @@
 exports.forLib = function (LIB) {
     var ccjson = this;
 
-    const CONTEXTS = require("../../../../lib/logic.cores/0-server.boot").boot(LIB);
     const BOOKSHELF = require("bookshelf");
 
     return LIB.Promise.resolve({
