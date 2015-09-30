@@ -28,9 +28,11 @@ exports.forLib = function (LIB) {
                     models: {},
                     helpers: {
                       collateRecords: function (ownCollection, records) {
+
                         var collections = {};
                         var collectionsById = {};
-                        function addRecord(collection, record) {
+
+                        function addRecord (collection, record) {
                           if (!collections[collection]) {
                             collections[collection] = [];
                             collectionsById[collection] = {};
@@ -41,7 +43,8 @@ exports.forLib = function (LIB) {
                           collectionsById[collection][record.id] = record;
                           collections[collection].push(record);
                         }
-                        records.forEach(function (record) {
+                        
+                        function handleRecord (ownCollection, record) {
                           for (var name in record) {
                             if (
                                 record[name] &&
@@ -51,21 +54,32 @@ exports.forLib = function (LIB) {
                                 api.models[ownCollection]["@fields"][name] &&
                                 api.models[ownCollection]["@fields"][name].linksToOne
                             ) {
-                              addRecord(api.models[ownCollection]["@fields"][name].linksToOne, record[name]);
+                              handleRecord(api.models[ownCollection]["@fields"][name].linksToOne, record[name]);
                               record[name] = record[name].id;
                             } else
                             if (
                                 record[name] &&
-                                Array.isArray(record[name]) &&
-                                api.models[name]
+                                /^rel_/.test(name)
                             ) {
-                                record[name] = record[name].map(function (record) {
-                                    addRecord(name, record);
-                                    return record.id;
-                                });
+                                var relCollection = name.replace(/^rel_/, "");
+                                if (api.models[relCollection]) {
+                                    if (Array.isArray(record[name])) {
+                                        record[name] = record[name].map(function (record) {
+                                            handleRecord(relCollection, record);
+                                            return record.id;
+                                        });
+                                    } else {
+                                        handleRecord(relCollection, record[name]);
+                                        delete record[name];
+                                    }
+                                }
                             }
                           }
                           addRecord(ownCollection, record);
+                        }
+
+                        records.forEach(function (record) {
+                            handleRecord(ownCollection, record);
                         });
                         return collections;
                       }                            
@@ -98,7 +112,7 @@ exports.forLib = function (LIB) {
                                 if (!foreignFields[modelName]) {
                                     foreignFields[modelName] = {};
                                 }
-                                foreignFields[modelName][field.linksToOne] = function () {
+                                foreignFields[modelName]["rel_" + field.linksToOne] = function () {
                                     return this.belongsTo(
                                         api.models[field.linksToOne],
                                         fieldName
@@ -108,7 +122,7 @@ exports.forLib = function (LIB) {
                                     foreignFields[field.linksToOne] = {};
                                 }
 //console.log("TABLE ", field.linksToOne, "HAS MANY OF", modelName, "based on FIELD", fieldName, 'in relation', modelName, 'for collection', field.linksToOne);                          
-                                foreignFields[field.linksToOne][modelName] = function () {
+                                foreignFields[field.linksToOne]["rel_" + modelName] = function () {
                                     return this.hasMany(
                                         api.models[modelName],
                                         fieldName
