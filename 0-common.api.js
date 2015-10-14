@@ -28,6 +28,11 @@ exports.forLib = function (LIB) {
             self.getCollection = function (alias) {
                 return state.collections[alias];
             }
+            
+            // HACK: Remove once data loading is subscribed per component
+            self.notifyInitialized = function () {
+                self.emit("initialized");
+            }
         }
         Context.prototype = Object.create(LIB.EventEmitter.prototype);
         Context.prototype.contexts = contexts;
