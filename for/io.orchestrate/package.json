@@ -1,0 +1,8 @@
+{
+  "name": "0-data-for-io.orchestrate",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "orchestrate": "^0.5.1"
+  }
+}
