@@ -94,6 +94,12 @@ exports.forLib = function (LIB) {
 
                 function ensureSchema () {
                     if (!knex) return LIB.Promise.resolve();
+
+                    if (!config.ensureSchema) {
+                        console.log("Skip ensure DB schema due to config option 'ensureSchema === false'");
+                        return LIB.Promise.resolve();
+                    }
+
                     return config.collections().then(function (models) {
 
                         // @see http://dataprotocols.org/json-table-schema/
@@ -258,6 +264,12 @@ exports.forLib = function (LIB) {
 
                 function seedCollections () {
                     if (!knex) return LIB.Promise.resolve();
+
+                    if (!config.seedCollections) {
+                        console.log("Skip seeding collections due to config option 'seedCollections === false'");
+                        return LIB.Promise.resolve();
+                    }
+
                     return config.seeds().then(function (seeds) {
                         return LIB.Promise.all(Object.keys(seeds).map(function (name) {
                             if (!globalTables[name]) return;
@@ -269,7 +281,6 @@ exports.forLib = function (LIB) {
                             var collectionSeedInstance = seeds[name];
 
 console.log(config.$alias, "TODO: KNEXJS SEED TABLE", name);
-
 
 
 /*
