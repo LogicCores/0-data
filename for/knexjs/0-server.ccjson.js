@@ -88,6 +88,17 @@ exports.forLib = function (LIB) {
                                     }
                                 )
                             );
+                        },
+                        getWildfireAdapter: function () {
+                            return LIB.Promise.resolve(
+                                ccjson.makeDetachedFunction(
+                                    function () {
+
+//console.log("TODO: GET WILDFIRE ADPATER!!!");                                        
+
+                                    }
+                                )
+                            );
                         }
                     });
                 }

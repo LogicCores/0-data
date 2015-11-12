@@ -37,6 +37,9 @@ exports.forLib = function (LIB) {
             self.notifyInitialized = function () {
                 self.emit("initialized");
             }
+
+            // TODO: Add a 'subscribe()' method that allows a consumer to subscribe to data
+            //       records which get fetched async in batch and then are available sync at runtime.
         }
         Context.prototype = Object.create(LIB.EventEmitter.prototype);
         Context.prototype.contexts = contexts;
