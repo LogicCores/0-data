@@ -5,11 +5,11 @@ exports.forLib = function (LIB) {
     const Q = require("q");
     const KNEX = require("knex");
 
+    var globalTables = {};
+    var globalSeeds = {};
+
     return LIB.Promise.resolve({
         forConfig: function (defaultConfig) {
-
-            var globalTables = {};
-            var globalSeeds = {};
 
             var Entity = function (instanceConfig) {
                 var self = this;
