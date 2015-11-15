@@ -2,9 +2,6 @@
 exports.forLib = function (LIB) {
     var ccjson = this;
 
-    const Q = require("q");
-    const KNEX = require("knex");
-
     var globalTables = {};
     var globalSeeds = {};
 
@@ -33,6 +30,9 @@ exports.forLib = function (LIB) {
                     config.knex.connection &&
                     config.knex.connection.host
                 ) {
+
+                    const KNEX = require("knex");
+
                 	// @see http://knexjs.org/#Installation-node
                 	console.log("KNEXJS Database: " + config.knex.connection.database);
                 	knex = KNEX(config.knex);
@@ -59,7 +59,7 @@ exports.forLib = function (LIB) {
                     			query = tableName;
                     			tableName = null;
                     		}
-                    		return Q.fcall(function () {
+                    		return LIB.q.fcall(function () {
                     			var table = ((tableName) ? knex(tableName) : knex);
                     			return query(table).then(function (resp) {
                     
@@ -129,7 +129,7 @@ exports.forLib = function (LIB) {
                 		return getExistingTables().then(function (existingTables) {
 
                 			function ensureTable (tableName, schema) {
-                				if (existingTables[tableName]) return Q.resolve();
+                				if (existingTables[tableName]) return LIB.q.resolve();
                 				//return knex.schema.dropTable(tableName).then(function () {
                 					console.log("[db] Create table: " + tableName);
                 					return knex.schema.createTable(tableName, function (table) {
@@ -236,11 +236,11 @@ exports.forLib = function (LIB) {
                 
                 						// Drop 'required' constraint on old fields to ensure we
                 						// can insert new records while ignoring old fields.
-                						return Q.all(Object.keys(existingFields).map(function (name) {
+                						return LIB.q.all(Object.keys(existingFields).map(function (name) {
                 							if (
                 							    currentFields[name] ||
                 							    existingFields[name].is_nullable === 'YES'
-                							) return Q.resolve();
+                							) return LIB.q.resolve();
 
         									console.log("[db] Drop 'required' from field '" + name + "' for table '" + tableName + "' (due to field deleted)");
 

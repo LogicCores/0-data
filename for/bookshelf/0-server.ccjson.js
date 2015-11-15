@@ -2,8 +2,6 @@
 exports.forLib = function (LIB) {
     var ccjson = this;
 
-    const BOOKSHELF = require("bookshelf");
-
     return LIB.Promise.resolve({
         forConfig: function (defaultConfig) {
 
@@ -88,7 +86,7 @@ exports.forLib = function (LIB) {
 
                 // TODO: See why we get instance requests without knex set
                 if (knex) {
-                    api.adapter.bookshelf = BOOKSHELF(knex);
+                    api.adapter.bookshelf = require("bookshelf")(knex);
                 }
 
                 context.setAdapterAPI(api);

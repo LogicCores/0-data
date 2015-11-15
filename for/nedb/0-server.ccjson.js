@@ -2,9 +2,7 @@
 exports.forLib = function (LIB) {
     var ccjson = this;
 
-    const NEDB = require("nedb");
-    
-    
+
     var instances = {};
     // We ensure we only have one DB connection if same file
     // is opened multiple times for different stacks.
@@ -12,6 +10,7 @@ exports.forLib = function (LIB) {
         if (instances[config.filename]) {
             return instances[config.filename];
         }
+        const NEDB = require("nedb");
         return (instances[config.filename] = new NEDB(config));
     }
     
