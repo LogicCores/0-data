@@ -34,48 +34,78 @@ exports.forLib = function (LIB) {
                     const KNEX = require("knex");
 
                 	// @see http://knexjs.org/#Installation-node
-                	console.log("KNEXJS Database: " + config.knex.connection.database);
-                	knex = KNEX(config.knex);
+                	var info = {
+                	    ns: config.$alias,
+                	    database: config.knex.connection.database
+                	};
+                	if (config.knex.connection.locationHint) {
+                	    info.locationHint = config.knex.connection.locationHint;
+                	}
+                	console.log("KNEXJS Database:", info);
 
-                    api.adapter = {
-                        knex: function (tableName, query) {
-                    		if (typeof query === "undefined" && typeof tableName === "function") {
-                    			query = tableName;
-                    			tableName = null;
-                    		}
-                			var table = ((tableName) ? knex(tableName) : knex);
-                			return query(table).then(function (resp) {
-                
-//console.log("RESPONSE:", resp);
-                
-                				return resp;
-                			}).catch(function (err) {
-                    			console.error("DB Error:", err.stack);
-                    			throw err;
-                    		});
-                    	},
-                    	qknex: function (tableName, query) {
-                    		if (typeof query === "undefined" && typeof tableName === "function") {
-                    			query = tableName;
-                    			tableName = null;
-                    		}
-                    		return LIB.q.fcall(function () {
+                	knex = KNEX(config.knex);
+                	
+                	function makeAdapter (knex) {
+                	    return {
+                	        knex: function (tableName, query) {
+                        		if (typeof query === "undefined" && typeof tableName === "function") {
+                        			query = tableName;
+                        			tableName = null;
+                        		}
                     			var table = ((tableName) ? knex(tableName) : knex);
                     			return query(table).then(function (resp) {
                     
-//console.log("RESPONSE:", resp);
+    //console.log("RESPONSE:", resp);
                     
                     				return resp;
-                    			});
-                    		}).catch(function (err) {
-                    			console.error(err.stack);
-                    			throw err;
-                    		});
-                    	}
+                    			}).catch(function (err) {
+                        			console.error("DB Error:", err.stack);
+                        			throw err;
+                        		});
+                        	},
+                        	qknex: function (tableName, query) {
+                        		if (typeof query === "undefined" && typeof tableName === "function") {
+                        			query = tableName;
+                        			tableName = null;
+                        		}
+                        		return LIB.q.fcall(function () {
+                        			var table = ((tableName) ? knex(tableName) : knex);
+                        			return query(table).then(function (resp) {
+                        
+    //console.log("RESPONSE:", resp);
+                        
+                        				return resp;
+                        			});
+                        		}).catch(function (err) {
+                        			console.error(err.stack);
+                        			throw err;
+                        		});
+                        	}
+                        };
+                	}
+
+                    api.adapter = makeAdapter(knex);
+                    
+                    api.adapter.forConnection = function (connection) {
+
+                        var options = LIB._.clone(config.knex);
+                        LIB._.merge(options.connection, connection);
+
+                        var knex = KNEX(options);
+
+                        // TODO: Cache connection instances?
+                        return makeAdapter(knex);
                     };
                 }
                 
                 context.setAdapterAPI(api);
+
+                self.getAt = function (path) {
+                    var obj = {};
+                    LIB._.merge(obj, LIB._.cloneDeep(defaultConfig));
+                    LIB._.merge(obj, LIB._.cloneDeep(instanceConfig));
+                    return LIB.traverse(obj).get(path);
+                }
 
                 self.AspectInstance = function (aspectConfig) {
 
