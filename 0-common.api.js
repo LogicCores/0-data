@@ -17,6 +17,8 @@ exports.forLib = function (LIB) {
             };
             LIB._.merge(state, LIB._.cloneDeep(defaults));
 
+            self.config = defaults;
+
             self.getCollectionsInitialData = function () {
                 return defaults.collectionsInitialData;
             }
